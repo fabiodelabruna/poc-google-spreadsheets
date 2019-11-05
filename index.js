@@ -1,60 +1,20 @@
-const GoogleSpreadsheet = require('google-spreadsheet');
-const credentials = require('./client-secret.json');
+const request = require('request-promise');
 
-const doc = new GoogleSpreadsheet('1J6av2X6hYTplPRCqFCwdGkZTOKkuS5qq4m9FEoagzFk');
+// https://docs.google.com/spreadsheets/d/e/2PACX-1vQcU4xBoBYu3WQA70ScKITs2OjDfJ_OrE914yWcZ-yKMLjfzZKvsL0M0ETshoOHMuqWVRMu9KQM-mGV/pubhtml
 
-doc.useServiceAccountAuth(credentials, err => {
+const sheetID = '1-CmQumuz5ZiOvINhphEMgfplrJacQhD623RROcOBTAg';
+const URL = `https://spreadsheets.google.com/feeds/cells/${sheetID}/1/public/values?alt=json-in-script`;
 
+// https://sheets.googleapis.com/v4/spreadsheets/1-CmQumuz5ZiOvINhphEMgfplrJacQhD623RROcOBTAg/values/Sheet1?key=AIzaSyAGcyCaYHiybVWcEB-Fy78xAcUy9syerd8
+https://sheets.googleapis.com/v4/spreadsheets/1J6av2X6hYTplPRCqFCwdGkZTOKkuS5qq4m9FEoagzFk/values/Planilha1?key=AIzaSyC7ESVcHZqTLFLtCvPTSjuzjurtXJO-L5Q
 
-  doc.getInfo((err, info) => {
-
-    info.worksheets[0].getRows(1, (err, rows) => {
-
-      const data = [];
-
-      console.log(rows[0]);
-
-      for (row of rows) {
-
-        const novoModelo = {
-          nome: row.modelo,
-          de: row.de,
-          ate: row['até'],
-          moto: row.moto,
-          polmoto: row.pol,
-          passageiro: row.passageiro,
-          polpassageiro: row.pol_2,
-          mot: row.mot,
-          polmot: row.pol_3,
-          carona: row.carona,
-          polcarona: row.pol_4,
-          traseira: row.traseira,
-          poltraseira: row.pol_5,
-          fotos: [ row.fotoengate, row.fotoengate_2 ],
-          videos: [ row.videoengate, row.videoengate_2 ]
-        };
-
-        const marcaEncontrada = data.find(element => {
-          return element.marca === row.marca;
-        });
-
-        if (!marcaEncontrada) {
-          const novaMarca = {
-            marca: row.marca,
-            modelos: [ novoModelo ]
-          };
-
-          data.push(novaMarca);
-          continue;
-        }
-
-        marcaEncontrada.modelos.push(novoModelo);
-      }
-
-      console.log(JSON.stringify(data));
-
-    });
-
+request(URL)
+  .then(result => {
+    result = result.replace('gdata.io.handleScriptLoaded(','').slice(0, -2);
+    const json = JSON.parse(result);
+    console.log(JSON.stringify(json.feed.entry));
+  })
+  .catch(error => {
+    console.log(error);
   });
-
-})
+  
